@@ -5,5 +5,5 @@ class Simplepreprocessor:
         self.witdh =witdh
         self.height = height
         self.inter = inter
-    def process(self,image):
+    def preprocess(self,image):
         return cv2.resize(image,(self.witdh,self.height),interpolation=self.inter)
