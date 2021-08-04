@@ -20,7 +20,7 @@ imagePaths= list(paths.list_images(args["dataset"]))
 
 sp= Simplepreprocessor(32,32)
 sdl= SimpleDatasetLoader(preprocessors=[sp])
-(data,labels) = sdl.load(imagePaths,verbose=500)
+(data,labels) = sdl.load(imagePaths,verbose=1000)
 
 data = data.reshape((data.shape[0],32*32*3))
 
@@ -29,7 +29,7 @@ print("Feature Matrix :{:.1f}MB".format(data.nbytes/(1024*1000.0)))
 le= LabelEncoder()
 labels=le.fit_transform(labels)
 
-(trainX,testX,trainY,testY) = train_test_split(data,labels,test_size=0.25, random_state=42)
+(trainX,testX,trainY,testY) = train_test_split(data,labels,test_size=0.1, random_state=42)
 
 print("[INFO] evaluating k-NN classifier...")
 model=KNeighborsClassifier(n_neighbors=args["neighbors"],n_jobs=args["jobs"])
