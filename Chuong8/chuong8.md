@@ -167,3 +167,117 @@ Sử dụng cú pháp này, chúng ta có thể kết hợp tất cả lại v�
 $$
 L_{i}=\sum_{j \neq y_{i}} \max \left(0, s_{j}-s_{y_{i}}+1\right)
 $$
+Về cơ bản, hàm mất bản lề là tính tổng trên tất cả các lớp không chính xác (i#j) và so sánh kết quả của hàm tính điểm s của chúng tôi được trả về cho nhãn lớp thứ j (lớp không chính xác) và lớp yi(lớp đúng ). Chúng tôi áp dụng phép toán tối đa để kẹp các giá trị bằng 0, điều này quan trọng để đảm bảo chúng tôi không tính tổng các giá trị âm.
+
+Một xi đã cho được phân loại đúng khi tổn thất Li = 0. Để tính toán khoảng mất mát trên toàn bộ quá trình đào tạo của chúng tôi, chúng tôi chỉ cần lấy giá trị trung bình trên từng cá nhân Li.
+
+$$
+L=\frac{1}{N} \sum_{i=1}^{N} L_{i}
+$$
+Một chức năng mất liên quan khác mà bạn có thể gặp phải là hàm mất mát hinge bậc 2:
+$$
+L_{i}=\sum_{j \neq y_{i}} \max \left(0, s_{j}-s_{y_{i}}+1\right)^{2}
+$$
+
+Sử dụng bậc 2 có thể số lớn hơn trong việc dự đoán. Còn về việc bạn nên sử dụng hàm mất mát nào, điều đó hoàn toàn phụ thuộc vào tập dữ liệu của bạn.
+**A Multi-class SVM Loss Example**
+
+Bây giờ chúng ta đã xem xét toán học đằng sau việc tính toán hàm mất mát, hãy xem xét một ví dụ đã hoạt động. Chúng tôi sẽ lại sử dụng tập dữ liệu "Động vật" nhằm mục đích phân loại một hình ảnh nhất định là có chứa mèo, chó hoặc gấu trúc. Để bắt đầu, hãy xem Hình 8.5, nơi tôi đã đưa vào ba ví dụ đào tạo từ ba lớp của tập dữ liệu “Động vật”. Cho một số ma trận trọng số tùy ý W và vectơ độ lệch b, điểm đầu ra của f (x, W) = W x b được hiển thị trong phần thân của ma trận. Điểm số càng lớn, chức năng tính điểm của chúng tôi càng tin tưởng vào dự đoán.
+
+ Hãy bắt đầu bằng cách tính toán thiệt hại Li cho lớp "chó":
+
+```python
+max(0, 1.33 - 4.26 + 1) + max(0, -1.01 - 4.26 + 1)
+0
+```
+
+Tiếp theo hình mèo và panda ta có:
+<center><img src="/Chuong8\ss.PNG"></center>
+<center><font size="-1">Hình 8.5: So sánh chó,mèo, gấu trúc qua hàm mất mát.</font></center>
+
+```python
+#mèo
+max(0, 3.76 - (-1.20) + 1) + max(0, -3.81 - (-1.20) + 1)
+5.96
+#gấu trúc
+max(0, -2.37 - (-2.27) + 1) + max(0, 1.03 - (-2.27) + 1)
+5.199999999999999
+
+```
+
+Trong trường hợp này, hàm mất mát của chúng tôi lớn hơn 0, cho thấy rằng dự đoán của chúng tôi là không chính xác. Nhìn vào chức năng tính độ chính xác của chúng tôi, chúng tôi thấy rằng mô hình của chúng tôi dự đoán chó là nhãn được đề xuất với điểm 3,76 (vì đây là nhãn có điểm cao nhất). Chúng tôi biết rằng nhãn này không chính xác - và trong Chương 9, chúng tôi sẽ tìm hiểu cách tự động điều chỉnh trọng số của mình để sửa những dự đoán này.
+
+Chúng ta tính tổng mất mát được :
+```python
+(0.0 + 5.96 + 5.2) / 3.0
+3.72
+```
+### 8.2.3 Mất mát entropy và phân loại softmax
+
+Mặc dù việc mất mát hinge phổ biến, nhưng bạn có nhiều khả năng gặp phải tình trạng mất mátentropy chéo và bộ phân loại Softmax trong bối cảnh học sâu và mạng nơ-ron phức hợp. Tại sao thế này? Nói một cách đơn giản: Bộ phân loại Softmax cung cấp cho bạn xác suất cho từng nhãn lớp trong khi mất mát hinge  mang lại cho bạn lợi nhuận.
+
+**Cross-entropy Loss**
+Bộ phân loại Softmax là một tổng quát của dạng nhị phân của hồi quy logistic. Cũng giống như trước,hàm ánh xạ f của chúng ta được định nghĩa sao cho nó nhận một tập dữ liệu đầu vào là xi và ánh xạ chúng đến các nhãn lớp đầu ra thông qua tích số chấm của dữ liệu xi và ma trận trọng số W (bỏ qua độ lệch cho ngắn gọn):
+$$
+f\left(x_{i}, W\right)=W x_{i}=s_{i}
+$$
+
+Tuy nhiên hàm số tính độ mát mát khác,chúng ta có thể hiểu những điểm này là xác suất log không chuẩn hóa cho mỗi nhãn lớp. Chúng ta có hàm số mất mát cross entropy:
+$$
+L_{i}=-\log P\left(Y=y_{i} \mid X=x_{i}\right)
+$$
+Vì vậy, làm thế nào tôi đến đây? Chúng ta hãy phân tích các chức năng và xem xét.
+ Để bắt đầu, hàm mất mát của chúng tôi phải giảm thiểu khả năng ghi giá trị âm của lớp chính xác:
+$$
+L_{i}=-\log \left(e^{s_{y_{i}}} / \sum_{j} e^{s_{j}}\right)
+$$
+Và khi đó công thức có thể được trình bày như sau: 
+$$
+P\left(Y=k \mid X=x_{i}\right)=e^{s_{y_{i}}} / \sum_{j} e^{s_{j}}
+$$
+Tính lũy thừa và chuẩn hóa thông qua tổng số mũ là hàm Softmax của chúng tôi,việc tính toán mất mát cross-entropy trên toàn bộ tập dữ liệu được thực hiện bằng cách lấy giá trị trung bình:
+$$
+L=\frac{1}{N} \sum_{i=1}^{N} L_{i}
+$$
+Chúng tôi sẽ quay trở lại chính quy hóa, giải thích nó là gì, cách sử dụng nó và tại sao nó lại quan trọng đối với mạng thần kinh và học sâu trong Chương 9. Nếu các phương trình ở trên có vẻ đáng sợ, đừng lo lắng - chúng tôi sắp sửa các ví dụ số trong phần tiếp theo để đảm bảo bạn hiểu cách hoạt động của mất mát cross-entropy.
+
+Sau đây chúng tôi có ví dụ về đầu vào input gấu trúc và hàm tính hiệu suất điểm
+
+<center><img src="/Chuong8\panda.PNG"></center>
+
+<center><font size="-1">Hình 8.6 Hình ảnh gấu trúc </font></center>
+Để chứng minh tổn thất entropy chéo trong hoạt động, hãy xem Hình 8.6. Mục tiêu của chúng tôi là phân loại xem hình ảnh trên có chứa chó, mèo hay gấu trúc hay không. Rõ ràng, chúng ta có thể thấy rằng hình ảnh là một con “gấu trúc” - nhưng bộ phân loại Softmax của chúng tôi nghĩ gì? Để tìm hiểu, chúng ta sẽ cần xem xét từng bảng trong 4 bảng sau.
+
+|  | Scoring Function |
+| :--- | ---: |
+| Dog | -3.44 |
+| Cat | 1.16 |
+| Panda | 3.91 |
+Bảng đầu tiên bao gồm đầu ra của hàm tính điểm f của chúng tôi cho từng lớp trong số ba lớp, tương ứng. Các giá trị này là xác suất nhật ký không chuẩn hóa của chúng tôi cho ba lớp. Sau đó:
+|  | Scoring Function | Unnormalized Probabilities |
+| :--- | ---: | ---: |
+| Dog | -3.44 | 0.03 |
+| Cat | 1.16 | 3.19 |
+| Panda | 3.91 | 49.90 |
+Hãy tính lũy thừa kết quả đầu ra của hàm tính điểm (e s, trong đó s là giá trị hàm điểm của chúng ta), tạo ra xác suất không chuẩn hóa của chúng ta (bảng thứ hai)
+|  |  | Scoring Function | Unnormalized Probabilities | Normalized Probabilities |
+| :--- | ---: | ---: | ---: | :---: |
+| Dog | -3.44 | 0.0321 | 0.0006 |  |
+| Cat | 1.16 | 3.1899 | 0.0601 |  |
+| Panda | 3.91 | 49.8990 | 0.9393 |  |
+Bước tiếp theo là lấy mẫu số, tính tổng các số mũ và chia cho tổng, do đó thu được các xác suất thực tế liên quan đến mỗi nhãn lớp (bảng thứ ba).
+|  | Scoring Function | Unnormalized Probabilities | Normalized Probabilities | Negative Log Loss |
+| :--- | ---: | ---: | ---: | ---: |
+| Dog | -3.44 | 0.0321 | 0.0006 | 7.4126 |
+| Cat | 1.16 | 3.1899 | 0.0601 | 2.8126 |
+| Panda | 3.91 | 49.8990 | 0.9393 | 0.0626 |
+Cuối cùng, chúng ta có thể lấy logarit tự nhiên âm, −ln (p), trong đó p là xác suất chuẩn hóa, mang lại mất mát cuối cùng của chúng ta (bảng thứ tư và bảng cuối cùng).
+
+Trong trường hợp này, bộ phân loại Softmax của chúng tôi sẽ báo cáo chính xác hình ảnh là gấu trúc với 93,93%.Sau đó, chúng tôi có thể lặp lại quy trình này cho tất cả các hình ảnh trong tập huấn luyện của mình, lấy giá trị trung bình và thu được tổn thất tổng thể qua entropy cho tập huấn luyện. Quá trình này cho phép chúng tôi định lượng tốt hay xấu một bộ thông số đang hoạt động trên bộ đào tạo của chúng tôi.
+
+### 8.3 Tổng kết 
+
+Trong chương này, chúng ta đã xem xét bốn thành phần của tham số học: 1. Dữ liệu 2. Chức năng cho điểm 3. Chức năng giảm 4. Trọng số và độ lệch Trong bối cảnh phân loại hình ảnh, dữ liệu đầu vào của chúng ta là tập dữ liệu về hình ảnh. Chức năng cho điểm tạo ra các dự đoán cho một hình ảnh đầu vào nhất định. Sau đó, hàm mất mát xác định mức độ tốt hay xấu của một tập hợp các dự đoán trên tập dữ liệu. Cuối cùng, ma trận trọng số và vectơ độ lệch là những gì cho phép chúng ta thực sự “học” từ dữ liệu đầu vào - các thông số này sẽ được tinh chỉnh và điều chỉnh thông qua các phương pháp tối ưu hóa nhằm cố gắng đạt được độ chính xác phân loại cao hơn. Sau đó, chúng tôi xem xét hai hàm mất mát phổ biến: mất mát hingle và mất entropy chéo.
+
+Trong chương tiếp theo, chúng tôi sẽ xem xét các phương pháp tối ưu hóa được sử dụng để điều chỉnh ma trận trọng số và vectơ chệch hướng của chúng tôi. Các phương pháp tối ưu hóa cho phép các thuật toán của chúng tôi thực sự học hỏi từ dữ liệu đầu vào của chúng tôi bằng cách cập nhật ma trận trọng số và vectơ độ lệch dựa trên kết quả đầu ra của các hàm tính điểm và giảm của chúng tôi. Sử dụng các kỹ thuật này, chúng ta có thể thực hiện các bước gia tăng đối với các giá trị tham số có được mức suy hao thấp hơn và độ chính xác cao hơn. Các phương pháp tối ưu hóa là nền tảng của mạng nơ-ron hiện đại và học sâu, và nếu không có chúng, chúng ta sẽ không thể học các mẫu từ dữ liệu đầu vào của mình, vì vậy hãy nhớ chú ý đến chương sắp tới.
+[Xem tiếp chương 3](Chuong9/chuong9.md)
